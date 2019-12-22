@@ -7,6 +7,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import chromedriver_binary
 import os
+import uuid
+import time
 
 
 # ブラウザーを起動
@@ -21,7 +23,7 @@ driver = webdriver.Chrome(options=options)
 # get a HTML response
 
 
-# 特定のサイト（Yahoo!検索）にアクセスする
+# 特定のサイトにアクセスする
 driver.get('https://www.pinterest.jp/search/pins/?q=web%E3%83%87%E3%82%B6%E3%82%A4%E3%83%B3&rs=typed&term_meta[]=web%E3%83%87%E3%82%B6%E3%82%A4%E3%83%B3%7Ctyped')
 html = driver.page_source.encode('utf-8')  # more sophisticated methods may be availabl
 
@@ -30,13 +32,58 @@ images = [] # 画像リストの配列
  
 # soup = BeautifulSoup(requests.get(URL).text,'lxml') # bsでURL内を解析
 soup = BeautifulSoup(html,'lxml')
+
+#ページの高さを取得
+height = driver.execute_script("return document.body.scrollHeight")
+# print(height)
+#最後までスクロールすると長いので、半分の長さに割る。
+# height = height 
+
+scroll_num = 0
+
+for sc in range(1,10):
  
-for link in soup.find_all("img"): # imgタグを取得しlinkに格納
-    # print(link)
-    if link.get("src").endswith(".jpg"): # imgタグ内の.jpgであるsrcタグを取得
-        images.append(link.get("src")) # imagesリストに格納
-    elif link.get("src").endswith(".png"): # imgタグ内の.pngであるsrcタグを取得
-    	images.append(link.get("src")) # imagesリストに格納
+    for link in soup.find_all("img"): # imgタグを取得しlinkに格納
+        # print(num)
+        print(link)
+        if link.get("src").endswith(".jpg"): # imgタグ内の.jpgであるsrcタグを取得
+            images.append(link.get("src")) # imagesリストに格納
+        elif link.get("src").endswith(".png"): # imgタグ内の.pngであるsrcタグを取得
+            images.append(link.get("src")) # imagesリストに格納
+        #ループ処理で少しづつ移動
+        # for x in range(1,height):
+        #     driver.execute_script("window.scrollTo(10, "+str(x)+");")
+
+    # scroll_x = 'window.scrollTo(0, '
+    # scroll_num = num*500
+    # scroll_x += str(scroll_num) + ');'
+    # print(scroll_x)
+    # driver.execute_script(scroll_x)
+    # time.sleep(5)
+
+    scroll_num+=3200
+
+    
+    html01=driver.page_source
+    while 1:
+        driver.execute_script("window.scrollBy(0, 3200)")
+        time.sleep(3)
+        html02=driver.page_source
+        if html01!=html02:
+            html01=html02
+        else:
+            break
+
+    soup = BeautifulSoup(html02,'lxml')
+
+# imgs = soup.find_all('img',limit = 100)
+# for img in imgs:
+#         print(img['src'])
+#         r = requests.get(img['src'])
+#         with open(str('img/')+str(uuid.uuid4())+str('.jpeg'),'wb') as file:
+#                 file.write(r.content)
+
+                
  
 for target in images: # imagesからtargetに入れる
     re = requests.get(target)
